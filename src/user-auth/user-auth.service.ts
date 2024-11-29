@@ -22,6 +22,7 @@ export class UserAuthService {
   ) {}
 
   async registerUser(
+    name: string,
     email: string,
     password: string,
   ): Promise<{ message: string }> {
@@ -32,7 +33,7 @@ export class UserAuthService {
       }
 
       const hash = await bcrypt.hash(password, 10);
-      await this.userModel.create({ email, password: hash });
+      await this.userModel.create({ name, email, password: hash });
 
       return { message: 'User registered successfully' };
     } catch (error) {

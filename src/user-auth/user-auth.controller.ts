@@ -1,5 +1,15 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { User } from './schemas/user-auth.schema';
 import { UserAuthService } from './user-auth.service';
 
@@ -9,19 +19,28 @@ export class UserAuthController {
 
   @Post('register')
   async registerUser(
-    @Body() body: { email: string; password: string },
+    @Body() registerDto: RegisterDto,
   ): Promise<{ message: string }> {
-    const { email, password } = body;
-    return this.userAuthService.registerUser(email, password);
+    try {
+      const { name, email, password } = registerDto;
+      await this.userAuthService.registerUser(name, email, password);
+      return { message: 'User registered successfully' };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
   @Post('login')
   async loginUser(
-    @Body() body: { email: string; password: string },
+    @Body() loginDto: LoginDto,
   ): Promise<{ message: string; token: string }> {
-    const { email, password } = body;
-    const token = await this.userAuthService.loginUser(email, password);
-    return { message: 'Login successful', token };
+    try {
+      const { email, password } = loginDto;
+      const token = await this.userAuthService.loginUser(email, password);
+      return { message: 'Login successful', token };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+    }
   }
 
   @Get('users')
