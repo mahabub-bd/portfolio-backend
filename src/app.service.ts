@@ -24,6 +24,11 @@ export class AppService {
           path: '/api/auth/users',
           description: 'Fetch all registered users (protected)',
         },
+        {
+          method: 'GET',
+          path: '/api/auth/user',
+          description: 'Fetch Login  user information (protected)',
+        },
       ],
     };
   }
