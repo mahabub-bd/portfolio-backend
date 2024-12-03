@@ -59,8 +59,8 @@ export class UserAuthService {
       if (!passwordMatch) {
         throw new UnauthorizedException('Invalid login credentials');
       }
-      const payload = { userId: user._id };
-      const token = this.jwtService.sign(payload);
+      const payload = { email: user.email }; // Only use email in payload
+      const token = this.jwtService.sign(payload); // Sign with email instead of userId
       return token;
     } catch (error) {
       this.logger.error(`Login error: ${error.message}`);
@@ -78,5 +78,9 @@ export class UserAuthService {
       );
       throw new Error('An error occurred while retrieving users');
     }
+  }
+
+  async getLoggedInUserByEmail(email: string): Promise<User> {
+    return this.userModel.findOne({ email });
   }
 }

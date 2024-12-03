@@ -4,7 +4,11 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
@@ -15,6 +19,8 @@ import { UserAuthService } from './user-auth.service';
 
 @Controller('api/auth')
 export class UserAuthController {
+  private readonly logger = new Logger(UserAuthController.name);
+
   constructor(private readonly userAuthService: UserAuthService) {}
 
   @Post('register')
@@ -47,5 +53,23 @@ export class UserAuthController {
   @UseGuards(AuthGuard)
   async getUsers(): Promise<User[]> {
     return this.userAuthService.getUsers();
+  }
+
+  @Get('user')
+  @UseGuards(AuthGuard)
+  async getLoggedInUser(@Request() req): Promise<User> {
+    try {
+      const email = req.body.email;
+      const user = await this.userAuthService.getLoggedInUserByEmail(email);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      this.logger.error(
+        `An error occurred while retrieving the logged-in user's data: ${error.message}`,
+      );
+      throw new InternalServerErrorException('Failed to retrieve user data');
+    }
   }
 }
