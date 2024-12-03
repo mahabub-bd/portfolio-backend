@@ -80,7 +80,10 @@ export class UserAuthService {
     }
   }
 
-  async getLoggedInUserByEmail(email: string): Promise<User> {
-    return this.userModel.findOne({ email });
+  async getLoggedInUserByEmail(email: string): Promise<Partial<User>> {
+    const user = await this.userModel
+      .findOne({ email })
+      .select('email name createdAt');
+    return user;
   }
 }
