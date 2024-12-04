@@ -1,10 +1,10 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import * as mongoose from 'mongoose'; // Import Mongoose directly
+import * as mongoose from 'mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserAuthModule } from './user-auth/user-auth.module';
+import { AuthModule } from './auth/user-auth.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { UserAuthModule } from './user-auth/user-auth.module';
     MongooseModule.forRoot(process.env.MONGO_URI, {
       dbName: 'portfolio',
     }),
-    UserAuthModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

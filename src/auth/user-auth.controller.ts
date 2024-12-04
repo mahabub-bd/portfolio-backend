@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -15,13 +16,12 @@ import { AuthGuard } from './auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { User } from './schemas/user-auth.schema';
-import { UserAuthService } from './user-auth.service';
+import { AuthService } from './user-auth.service';
 
 @Controller('/auth')
-export class UserAuthController {
-  private readonly logger = new Logger(UserAuthController.name);
-
-  constructor(private readonly userAuthService: UserAuthService) {}
+export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+  constructor(private readonly AuthService: AuthService) {}
 
   @Post('register')
   async registerUser(
@@ -29,7 +29,7 @@ export class UserAuthController {
   ): Promise<{ message: string }> {
     try {
       const { name, email, password } = registerDto;
-      await this.userAuthService.registerUser(name, email, password);
+      await this.AuthService.registerUser(name, email, password);
       return { message: 'User registered successfully' };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -42,7 +42,7 @@ export class UserAuthController {
   ): Promise<{ message: string; token: string }> {
     try {
       const { email, password } = loginDto;
-      return await this.userAuthService.loginUser(email, password);
+      return await this.AuthService.loginUser(email, password);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
     }
@@ -51,14 +51,14 @@ export class UserAuthController {
   @Get('users')
   @UseGuards(AuthGuard)
   async getUsers(): Promise<User[]> {
-    return this.userAuthService.getUsers();
+    return this.AuthService.getUsers();
   }
 
   @Get('user/:id')
   @UseGuards(AuthGuard)
   async getUserById(@Param('id') userId: string): Promise<User> {
     try {
-      const user = await this.userAuthService.getLoggedInUserById(userId);
+      const user = await this.AuthService.getLoggedInUserById(userId);
       if (!user) {
         throw new NotFoundException('User not found');
       }
@@ -68,6 +68,25 @@ export class UserAuthController {
         `An error occurred while retrieving the user by ID (${userId}): ${error.message}`,
       );
       throw new InternalServerErrorException('Failed to retrieve user data');
+    }
+  }
+
+  @Delete('user/:id')
+  @UseGuards(AuthGuard)
+  async deleteUserById(
+    @Param('id') userId: string,
+  ): Promise<{ message: string }> {
+    try {
+      const user = await this.AuthService.deleteUserById(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return { message: 'User deleted successfully' };
+    } catch (error) {
+      this.logger.error(
+        `An error occurred while deleting the user by ID (${userId}): ${error.message}`,
+      );
+      throw new InternalServerErrorException('Failed to delete user');
     }
   }
 }

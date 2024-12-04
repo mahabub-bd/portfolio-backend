@@ -3,8 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { secretKey } from './config';
 import { UserSchema } from './schemas/user-auth.schema';
-import { UserAuthController } from './user-auth.controller';
-import { UserAuthService } from './user-auth.service';
+import { AuthController } from './user-auth.controller';
+import { AuthService } from './user-auth.service';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
@@ -13,9 +13,9 @@ import { UserAuthService } from './user-auth.service';
       signOptions: { expiresIn: '1h' },
     }),
   ],
-  controllers: [UserAuthController],
-  providers: [UserAuthService],
+  controllers: [AuthController],
+  providers: [AuthService],
 })
-export class UserAuthModule implements NestModule {
+export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {}
 }

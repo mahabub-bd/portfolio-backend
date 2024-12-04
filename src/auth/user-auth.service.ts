@@ -13,8 +13,8 @@ import { Model } from 'mongoose';
 import { User } from './schemas/user-auth.schema';
 
 @Injectable()
-export class UserAuthService {
-  private readonly logger = new Logger(UserAuthService.name);
+export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
@@ -90,6 +90,18 @@ export class UserAuthService {
         `Error fetching user by ID (${userId}): ${error.message}`,
       );
       throw new InternalServerErrorException('Failed to fetch user by ID');
+    }
+  }
+
+  async deleteUserById(userId: string): Promise<User | null> {
+    try {
+      const user = await this.userModel.findByIdAndDelete(userId);
+      return user;
+    } catch (error) {
+      this.logger.error(
+        `An error occurred while deleting the user by ID (${userId}): ${error.message}`,
+      );
+      throw new InternalServerErrorException('Failed to delete user');
     }
   }
 }

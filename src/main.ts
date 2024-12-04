@@ -5,14 +5,21 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const config = new DocumentBuilder()
-    .setTitle('Mahabub Hossain Portfolio Backend API')
-    .setDescription('Mahabub Hossain Portfolio Backend API')
-    .setVersion('1.0.0')
-    .addTag('portfolio')
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, documentFactory);
-  await app.listen(process.env.PORT ?? 3000);
+  setupSwagger(app);
+
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
 }
+
+function setupSwagger(app) {
+  const config = new DocumentBuilder()
+    .setTitle('mahabub.me backend api')
+    .setDescription('API documentation for Mahabub Hossain Portfolio')
+    .setVersion('1.0.0')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
+}
+
 bootstrap();
