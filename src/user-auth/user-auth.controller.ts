@@ -7,8 +7,8 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  Param,
   Post,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
@@ -17,7 +17,7 @@ import { RegisterDto } from './dto/register.dto';
 import { User } from './schemas/user-auth.schema';
 import { UserAuthService } from './user-auth.service';
 
-@Controller('api/auth')
+@Controller('/auth')
 export class UserAuthController {
   private readonly logger = new Logger(UserAuthController.name);
 
@@ -42,8 +42,7 @@ export class UserAuthController {
   ): Promise<{ message: string; token: string }> {
     try {
       const { email, password } = loginDto;
-      const token = await this.userAuthService.loginUser(email, password);
-      return { message: 'Login successful', token };
+      return await this.userAuthService.loginUser(email, password);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
     }
@@ -55,19 +54,18 @@ export class UserAuthController {
     return this.userAuthService.getUsers();
   }
 
-  @Get('user')
+  @Get('user/:id')
   @UseGuards(AuthGuard)
-  async getLoggedInUser(@Request() req): Promise<User> {
+  async getUserById(@Param('id') userId: string): Promise<User> {
     try {
-      const email = req.body.email;
-      const user = await this.userAuthService.getLoggedInUserByEmail(email);
+      const user = await this.userAuthService.getLoggedInUserById(userId);
       if (!user) {
         throw new NotFoundException('User not found');
       }
       return user;
     } catch (error) {
       this.logger.error(
-        `An error occurred while retrieving the logged-in user's data: ${error.message}`,
+        `An error occurred while retrieving the user by ID (${userId}): ${error.message}`,
       );
       throw new InternalServerErrorException('Failed to retrieve user data');
     }

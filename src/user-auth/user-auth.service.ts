@@ -49,23 +49,24 @@ export class UserAuthService {
     }
   }
 
-  async loginUser(email: string, password: string): Promise<string> {
-    try {
-      const user = await this.userModel.findOne({ email });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        throw new UnauthorizedException('Invalid login credentials');
-      }
-      const payload = { email: user.email }; // Only use email in payload
-      const token = this.jwtService.sign(payload); // Sign with email instead of userId
-      return token;
-    } catch (error) {
-      this.logger.error(`Login error: ${error.message}`);
-      throw new UnauthorizedException('An error occurred while logging in');
+  async loginUser(
+    email: string,
+    password: string,
+  ): Promise<{ message: string; token: string }> {
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      throw new UnauthorizedException('Invalid login credentials');
+    }
+    const payload = { userId: user._id, email: user.email, name: user.name };
+    const token = this.jwtService.sign(payload);
+    return {
+      message: 'Login successful',
+      token,
+    };
   }
 
   async getUsers(): Promise<User[]> {
@@ -80,7 +81,15 @@ export class UserAuthService {
     }
   }
 
-  async getLoggedInUserByEmail(email: string): Promise<User> {
-    return this.userModel.findOne({ email });
+  async getLoggedInUserById(userId: string): Promise<User> {
+    try {
+      const user = await this.userModel.findById(userId).select('-password');
+      return user;
+    } catch (error) {
+      this.logger.error(
+        `Error fetching user by ID (${userId}): ${error.message}`,
+      );
+      throw new InternalServerErrorException('Failed to fetch user by ID');
+    }
   }
 }
