@@ -14,7 +14,7 @@ async function bootstrap() {
 function setupSwagger(app) {
   const config = new DocumentBuilder()
     .setTitle('mahabub.me backend api')
-    .setDescription('API documentation for Mahabub Hossain Portfolio')
+    .setDescription('API documentation')
     .setVersion('1.0.0')
     .build();
 
