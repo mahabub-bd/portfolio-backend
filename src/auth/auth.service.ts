@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
-import { User } from './schemas/user-auth.schema';
+import { User } from './schemas/auth.schema';
 
 @Injectable()
 export class AuthService {
