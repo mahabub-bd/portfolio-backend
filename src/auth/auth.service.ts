@@ -29,6 +29,7 @@ export class AuthService {
   ): Promise<{ message: string; statusCode: number }> {
     try {
       const existingUser = await this.userModel.findOne({ email });
+
       if (existingUser) {
         throw new ConflictException({
           message: 'User with this email already exists',
@@ -44,9 +45,14 @@ export class AuthService {
         statusCode: HttpStatus.CREATED,
       };
     } catch (error) {
-      this.logger.error(`Error during registration: ${error.message}`, error);
+      this.logger.error(`Full error object: ${JSON.stringify(error)}`);
 
-      if (error.code === 11000 || error.name === 'MongoServerError') {
+      // Handle MongoDB duplicate key error
+      if (
+        error.code === 11000 || // MongoDB duplicate key error
+        error.name === 'MongoServerError' || // Alternative MongoDB error name
+        (error.message && error.message.includes('duplicate key error')) // Check error message
+      ) {
         throw new ConflictException({
           message: 'User with this email already exists',
           statusCode: HttpStatus.CONFLICT,
@@ -63,13 +69,7 @@ export class AuthService {
   async loginUser(
     email: string,
     password: string,
-  ): Promise<{
-    message: string;
-    statusCode: number;
-    name?: string;
-    email?: string;
-    token: string;
-  }> {
+  ): Promise<{ message: string; name: string; email: string; token: string }> {
     try {
       const user = await this.userModel.findOne({ email });
       if (!user) {
@@ -92,15 +92,23 @@ export class AuthService {
 
       return {
         message: 'Login successful',
-        statusCode: HttpStatus.OK,
         name: user.name,
         email: user.email,
         token,
       };
     } catch (error) {
-      throw new InternalServerErrorException({
+      this.logger.error(`Error during login: ${error.message}`, error);
+
+      if (
+        error instanceof NotFoundException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
+
+      throw new UnauthorizedException({
         message: 'An error occurred during login',
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        statusCode: HttpStatus.UNAUTHORIZED,
       });
     }
   }
