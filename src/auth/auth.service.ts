@@ -40,6 +40,8 @@ export class AuthService {
         statusCode: HttpStatus.CREATED,
       };
     } catch (error) {
+      this.logger.error(`Full error object: ${JSON.stringify(error)}`);
+
       throw new InternalServerErrorException({
         message: 'User Already Exist',
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
