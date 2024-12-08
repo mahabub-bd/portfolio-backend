@@ -52,7 +52,7 @@ export class AuthService {
   async loginUser(
     email: string,
     password: string,
-  ): Promise<{ message: string; token: string }> {
+  ): Promise<{ message: string; name: string; email: string; token: string }> {
     const user = await this.userModel.findOne({ email });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -65,6 +65,8 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
     return {
       message: 'Login successful',
+      name: user.name,
+      email: user.email,
       token,
     };
   }
