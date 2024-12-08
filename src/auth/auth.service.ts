@@ -30,12 +30,7 @@ export class AuthService {
     try {
       const existingUser = await this.userModel.findOne({ email });
 
-      if (existingUser) {
-        throw new ConflictException({
-          message: 'User with this email already exists',
-          statusCode: HttpStatus.CONFLICT,
-        });
-      }
+      if (existingUser) throw new ConflictException('User Already Exist');
 
       const hash = await bcrypt.hash(password, 10);
       await this.userModel.create({ name, email, password: hash });
@@ -45,22 +40,8 @@ export class AuthService {
         statusCode: HttpStatus.CREATED,
       };
     } catch (error) {
-      this.logger.error(`Full error object: ${JSON.stringify(error)}`);
-
-      // Handle MongoDB duplicate key error
-      if (
-        error.code === 11000 || // MongoDB duplicate key error
-        error.name === 'MongoServerError' || // Alternative MongoDB error name
-        (error.message && error.message.includes('duplicate key error')) // Check error message
-      ) {
-        throw new ConflictException({
-          message: 'User with this email already exists',
-          statusCode: HttpStatus.CONFLICT,
-        });
-      }
-
       throw new InternalServerErrorException({
-        message: 'An error occurred while registering the user',
+        message: 'User Already Exist',
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
