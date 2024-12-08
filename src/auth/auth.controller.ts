@@ -27,13 +27,8 @@ export class AuthController {
   async registerUser(
     @Body() registerDto: RegisterDto,
   ): Promise<{ message: string }> {
-    try {
-      const { name, email, password } = registerDto;
-      await this.AuthService.registerUser(name, email, password);
-      return { message: 'User registered successfully' };
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+    const { name, email, password } = registerDto;
+    return this.AuthService.registerUser(name, email, password);
   }
 
   @Post('login')
@@ -50,7 +45,11 @@ export class AuthController {
 
   @Get('users')
   @UseGuards(AuthGuard)
-  async getUsers(): Promise<User[]> {
+  async getUsers(): Promise<{
+    message: string;
+    statusCode: number;
+    data: User[];
+  }> {
     return this.AuthService.getUsers();
   }
 

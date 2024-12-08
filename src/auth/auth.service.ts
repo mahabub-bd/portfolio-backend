@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -25,61 +26,105 @@ export class AuthService {
     name: string,
     email: string,
     password: string,
-  ): Promise<{ message: string }> {
+  ): Promise<{ message: string; statusCode: number }> {
     try {
       const existingUser = await this.userModel.findOne({ email });
       if (existingUser) {
-        throw new ConflictException('User with this email already exists');
+        throw new ConflictException({
+          message: 'User with this email already exists',
+          statusCode: HttpStatus.CONFLICT,
+        });
       }
 
       const hash = await bcrypt.hash(password, 10);
       await this.userModel.create({ name, email, password: hash });
 
-      return { message: 'User registered successfully' };
+      return {
+        message: 'User registered successfully',
+        statusCode: HttpStatus.CREATED,
+      };
     } catch (error) {
       this.logger.error(`Error during registration: ${error.message}`, error);
 
       if (error.code === 11000 || error.name === 'MongoServerError') {
-        throw new ConflictException('User with this email already exists');
+        throw new ConflictException({
+          message: 'User with this email already exists',
+          statusCode: HttpStatus.CONFLICT,
+        });
       }
 
-      throw new InternalServerErrorException(
-        'An error occurred while registering the user',
-      );
+      throw new InternalServerErrorException({
+        message: 'An error occurred while registering the user',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
   async loginUser(
     email: string,
     password: string,
-  ): Promise<{ message: string; name: string; email: string; token: string }> {
-    const user = await this.userModel.findOne({ email });
-    if (!user) {
-      throw new NotFoundException('User not found');
+  ): Promise<{
+    message: string;
+    statusCode: number;
+    name?: string;
+    email?: string;
+    token: string;
+  }> {
+    try {
+      const user = await this.userModel.findOne({ email });
+      if (!user) {
+        throw new NotFoundException({
+          message: 'User not found',
+          statusCode: HttpStatus.NOT_FOUND,
+        });
+      }
+
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        throw new UnauthorizedException({
+          message: 'Invalid login credentials',
+          statusCode: HttpStatus.UNAUTHORIZED,
+        });
+      }
+
+      const payload = { userId: user._id, email: user.email, name: user.name };
+      const token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Login successful',
+        statusCode: HttpStatus.OK,
+        name: user.name,
+        email: user.email,
+        token,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException({
+        message: 'An error occurred during login',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Invalid login credentials');
-    }
-    const payload = { userId: user._id, email: user.email, name: user.name };
-    const token = this.jwtService.sign(payload);
-    return {
-      message: 'Login successful',
-      name: user.name,
-      email: user.email,
-      token,
-    };
   }
 
-  async getUsers(): Promise<User[]> {
+  async getUsers(): Promise<{
+    message: string;
+    statusCode: number;
+    data: User[];
+  }> {
     try {
       const users = await this.userModel.find({});
-      return users;
+      return {
+        message: 'Users retrieved successfully',
+        statusCode: HttpStatus.OK,
+        data: users,
+      };
     } catch (error) {
       this.logger.error(
         `An error occurred while retrieving users: ${error.message}`,
       );
-      throw new Error('An error occurred while retrieving users');
+      throw new InternalServerErrorException({
+        message: 'An error occurred while retrieving users',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
