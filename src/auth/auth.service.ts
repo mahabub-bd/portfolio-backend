@@ -54,9 +54,11 @@ export class AuthService {
     password: string,
   ): Promise<{
     message: string;
-    name: string;
-    email: string;
-    token: string;
+    data: {
+      name: string;
+      email: string;
+      token: string;
+    };
     statusCode: number;
   }> {
     try {
@@ -71,8 +73,8 @@ export class AuthService {
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
         throw new UnauthorizedException({
-          message: 'Invalid login credentials',
           statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Invalid login credentials',
         });
       }
 
@@ -82,12 +84,17 @@ export class AuthService {
       return {
         message: 'Login successful',
         statusCode: HttpStatus.OK,
-        name: user.name,
-        email: user.email,
-        token,
+        data: {
+          name: user.name,
+          email: user.email,
+          token,
+        },
       };
     } catch (error) {
-      this.logger.error(`Error during login: ${error.message}`, error);
+      this.logger.error(
+        `Error during login: ${error instanceof Error ? error.message : error}`,
+        error,
+      );
 
       if (
         error instanceof NotFoundException ||
@@ -126,27 +133,74 @@ export class AuthService {
     }
   }
 
-  async getLoggedInUserById(userId: string): Promise<User> {
+  async getLoggedInUserById(userId: string): Promise<{
+    message: string;
+    data: any;
+    statusCode: number;
+  }> {
     try {
       const user = await this.userModel.findById(userId).select('-password');
-      return user;
+      if (!user) {
+        throw new NotFoundException({
+          message: 'User not found',
+          statusCode: HttpStatus.NOT_FOUND,
+        });
+      }
+
+      return {
+        message: 'User fetched successfully',
+        statusCode: HttpStatus.OK,
+        data: user,
+      };
     } catch (error) {
       this.logger.error(
-        `Error fetching user by ID (${userId}): ${error.message}`,
+        `Error fetching user by ID (${userId}): ${
+          error instanceof Error ? error.message : error
+        }`,
       );
-      throw new InternalServerErrorException('Failed to fetch user by ID');
+
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException({
+        message: 'Failed to fetch user by ID',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
-  async deleteUserById(userId: string): Promise<User | null> {
+  async deleteUserById(
+    userId: string,
+  ): Promise<{ message: string; statusCode: number }> {
     try {
       const user = await this.userModel.findByIdAndDelete(userId);
-      return user;
+      if (!user) {
+        throw new NotFoundException({
+          message: 'User not found',
+          statusCode: HttpStatus.NOT_FOUND,
+        });
+      }
+
+      return {
+        message: 'User deleted successfully',
+        statusCode: HttpStatus.OK,
+      };
     } catch (error) {
       this.logger.error(
-        `An error occurred while deleting the user by ID (${userId}): ${error.message}`,
+        `An error occurred while deleting the user by ID (${userId}): ${
+          error instanceof Error ? error.message : error
+        }`,
       );
-      throw new InternalServerErrorException('Failed to delete user');
+
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException({
+        message: 'Failed to delete user',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 }

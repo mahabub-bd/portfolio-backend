@@ -3,11 +3,7 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
-  InternalServerErrorException,
   Logger,
-  NotFoundException,
   Param,
   Post,
   UseGuards,
@@ -32,15 +28,17 @@ export class AuthController {
   }
 
   @Post('login')
-  async loginUser(
-    @Body() loginDto: LoginDto,
-  ): Promise<{ message: string; token: string }> {
-    try {
-      const { email, password } = loginDto;
-      return await this.AuthService.loginUser(email, password);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
-    }
+  async loginUser(@Body() loginDto: LoginDto): Promise<{
+    message: string;
+    data: {
+      name: string;
+      email: string;
+      token: string;
+    };
+    statusCode: number;
+  }> {
+    const { email, password } = loginDto;
+    return await this.AuthService.loginUser(email, password);
   }
 
   @Get('users')
@@ -55,37 +53,19 @@ export class AuthController {
 
   @Get('user/:id')
   @UseGuards(AuthGuard)
-  async getUserById(@Param('id') userId: string): Promise<User> {
-    try {
-      const user = await this.AuthService.getLoggedInUserById(userId);
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      return user;
-    } catch (error) {
-      this.logger.error(
-        `An error occurred while retrieving the user by ID (${userId}): ${error.message}`,
-      );
-      throw new InternalServerErrorException('Failed to retrieve user data');
-    }
+  async getUserById(@Param('id') userId: string): Promise<{
+    message: string;
+    data: any;
+    statusCode: number;
+  }> {
+    return await this.AuthService.getLoggedInUserById(userId);
   }
 
   @Delete('user/:id')
   @UseGuards(AuthGuard)
   async deleteUserById(
     @Param('id') userId: string,
-  ): Promise<{ message: string }> {
-    try {
-      const user = await this.AuthService.deleteUserById(userId);
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-      return { message: 'User deleted successfully' };
-    } catch (error) {
-      this.logger.error(
-        `An error occurred while deleting the user by ID (${userId}): ${error.message}`,
-      );
-      throw new InternalServerErrorException('Failed to delete user');
-    }
+  ): Promise<{ message: string; statusCode: number }> {
+    return await this.AuthService.deleteUserById(userId);
   }
 }

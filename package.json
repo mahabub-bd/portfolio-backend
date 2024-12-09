@@ -1,10 +1,9 @@
 {
-  "name": "nest-jwt-api",
-  "version": "0.0.1",
+  "name": "mahabub.me_backend",
+  "version": "1.0.1",
   "description": "",
   "author": "Mahabub Hossain",
   "private": true,
-
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
