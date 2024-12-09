@@ -52,7 +52,13 @@ export class AuthService {
   async loginUser(
     email: string,
     password: string,
-  ): Promise<{ message: string; name: string; email: string; token: string }> {
+  ): Promise<{
+    message: string;
+    name: string;
+    email: string;
+    token: string;
+    statusCode: number;
+  }> {
     try {
       const user = await this.userModel.findOne({ email });
       if (!user) {
@@ -75,6 +81,7 @@ export class AuthService {
 
       return {
         message: 'Login successful',
+        statusCode: HttpStatus.OK,
         name: user.name,
         email: user.email,
         token,
