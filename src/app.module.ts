@@ -5,6 +5,9 @@ import * as mongoose from 'mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { BlogController } from './blog/blog.controller';
+import { BlogModule } from './blog/blog.module';
+import { BlogService } from './blog/blog.service';
 
 @Module({
   imports: [
@@ -16,9 +19,10 @@ import { AuthModule } from './auth/auth.module';
       dbName: 'portfolio',
     }),
     AuthModule,
+    BlogModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, BlogController],
+  providers: [AppService, BlogService],
 })
 export class AppModule implements OnModuleInit {
   onModuleInit() {
