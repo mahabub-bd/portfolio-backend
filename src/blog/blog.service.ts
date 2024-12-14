@@ -86,7 +86,7 @@ export class BlogService {
     }
   }
 
-  //delete A Blog
+  //delete A Blog data
 
   async deleteBlog(blogId: string): Promise<{
     message: string;
