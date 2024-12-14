@@ -6,9 +6,7 @@ import {
   Logger,
   Param,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -42,7 +40,6 @@ export class AuthController {
   }
 
   @Get('users')
-  @UseGuards(AuthGuard)
   async getUsers(): Promise<{
     message: string;
     statusCode: number;
@@ -52,7 +49,6 @@ export class AuthController {
   }
 
   @Get('user/:id')
-  @UseGuards(AuthGuard)
   async getUserById(@Param('id') userId: string): Promise<{
     message: string;
     data: any;
@@ -62,7 +58,6 @@ export class AuthController {
   }
 
   @Delete('user/:id')
-  @UseGuards(AuthGuard)
   async deleteUserById(
     @Param('id') userId: string,
   ): Promise<{ message: string; statusCode: number }> {

@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateBlogDto } from './dto/createBlog.Dto';
+import { UpdateBlogDto } from './dto/updateBlog.Dto';
 import { Blog } from './schemas/blog.schema';
 
 @Injectable()
@@ -10,13 +11,23 @@ export class BlogService {
     @InjectModel(Blog.name) private readonly blogModel: Model<Blog>,
   ) {}
 
-  async getBlogs(): Promise<{
+  async getBlogs(query: any): Promise<{
     message: string;
     statusCode: number;
     data: Blog[];
   }> {
     try {
-      const blogs = await this.blogModel.find().exec();
+      const { limit, category } = query;
+
+      const filter: any = {};
+      if (category) {
+        filter.category = category;
+      }
+
+      const blogs = await this.blogModel
+        .find(filter)
+        .limit(limit ? parseInt(limit, 10) : 10)
+        .exec();
       return {
         message: 'Blogs retrieved successfully',
         statusCode: HttpStatus.OK,
@@ -80,6 +91,44 @@ export class BlogService {
     } catch (error) {
       return {
         message: 'Failed to create blog',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        data: null,
+      };
+    }
+  }
+  // Update Blog
+
+  async updateBlog(
+    id: string,
+    updateBlogDto: UpdateBlogDto,
+  ): Promise<{
+    message: string;
+    statusCode: number;
+    data: Blog | null;
+  }> {
+    try {
+      const updatedBlog = await this.blogModel.findByIdAndUpdate(
+        id,
+        { $set: updateBlogDto },
+        { new: true },
+      );
+
+      if (!updatedBlog) {
+        return {
+          message: 'Blog not found',
+          statusCode: HttpStatus.NOT_FOUND,
+          data: null,
+        };
+      }
+
+      return {
+        message: 'Blog updated successfully',
+        statusCode: HttpStatus.OK,
+        data: updatedBlog,
+      };
+    } catch (error) {
+      return {
+        message: 'Failed to update blog',
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         data: null,
       };
