@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { BlogController } from './blog/blog.controller';
 import { BlogModule } from './blog/blog.module';
 import { BlogService } from './blog/blog.service';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BlogService } from './blog/blog.service';
     }),
     AuthModule,
     BlogModule,
+    UserModule,
   ],
   controllers: [AppController, BlogController],
   providers: [AppService, BlogService],
