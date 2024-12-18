@@ -6,8 +6,8 @@ import { UserService } from './user.service';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  @UseGuards(AuthGuard)
-  @Get('')
+
+  @Get('/')
   async getUsers(): Promise<{
     message: string;
     statusCode: number;
@@ -15,8 +15,8 @@ export class UserController {
   }> {
     return this.userService.getUsers();
   }
-
-  @Get('user/:id')
+  @UseGuards(AuthGuard)
+  @Get(':id')
   async getUserById(@Param('id') userId: string): Promise<{
     message: string;
     data: any;
@@ -24,8 +24,8 @@ export class UserController {
   }> {
     return await this.userService.getLoggedInUserById(userId);
   }
-
-  @Delete('user/:id')
+  @UseGuards(AuthGuard)
+  @Delete(':id')
   async deleteUserById(
     @Param('id') userId: string,
   ): Promise<{ message: string; statusCode: number }> {

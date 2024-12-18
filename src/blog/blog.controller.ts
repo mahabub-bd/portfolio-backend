@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 
+import { AuthGuard } from 'src/auth/auth.guard';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/createBlog.Dto';
 import { UpdateBlogDto } from './dto/updateBlog.Dto';
@@ -30,14 +32,14 @@ export class BlogController {
   }
 
   // Create a new blog
-
+  @UseGuards(AuthGuard)
   @Post()
   async createBlog(@Body() createBlogDto: CreateBlogDto) {
     return this.blogService.createBlog(createBlogDto);
   }
 
   //Update a Blog
-
+  @UseGuards(AuthGuard)
   @Patch('/:id')
   async updateBlog(
     @Param('id') blogId: string,
@@ -47,6 +49,7 @@ export class BlogController {
   }
 
   // Delete a blog by slug
+  @UseGuards(AuthGuard)
   @Delete('/:id')
   async deleteBlog(@Param('id') blogId: string) {
     return this.blogService.deleteBlog(blogId);

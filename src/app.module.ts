@@ -5,10 +5,8 @@ import * as mongoose from 'mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { BlogController } from './blog/blog.controller';
 import { BlogModule } from './blog/blog.module';
-import { BlogService } from './blog/blog.service';
-import { UserModule } from './user/user.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -21,10 +19,10 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     BlogModule,
-    UserModule,
+    SharedModule,
   ],
-  controllers: [AppController, BlogController],
-  providers: [AppService, BlogService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule implements OnModuleInit {
   onModuleInit() {

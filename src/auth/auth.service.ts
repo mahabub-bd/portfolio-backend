@@ -1,8 +1,7 @@
 import {
-  ConflictException,
+  BadRequestException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
@@ -27,26 +26,20 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<{ message: string; statusCode: number }> {
-    try {
-      const existingUser = await this.userModel.findOne({ email });
-
-      if (existingUser) throw new ConflictException('User Already Exist');
-
-      const hash = await bcrypt.hash(password, 10);
-      await this.userModel.create({ name, email, password: hash });
-
-      return {
-        message: 'User registered successfully',
-        statusCode: HttpStatus.CREATED,
-      };
-    } catch (error) {
-      this.logger.error(`Full error object: ${JSON.stringify(error)}`);
-
-      throw new InternalServerErrorException({
-        message: 'User Already Exist',
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      });
+    // Check if the user already exists
+    const existingUser = await this.userModel.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestException('User already exists');
     }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await this.userModel.create({ name, email, password: hash });
+
+    return {
+      message: 'User registered successfully',
+      statusCode: HttpStatus.CREATED,
+    };
   }
 
   async loginUser(

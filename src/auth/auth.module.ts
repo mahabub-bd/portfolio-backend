@@ -1,17 +1,15 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
+import { SharedModule } from 'src/shared/shared.module';
+import { UserModule } from 'src/user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { secretKey } from './config';
 import { UserSchema } from './schemas/auth.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
-    JwtModule.register({
-      secret: secretKey.secret,
-      signOptions: { expiresIn: '1h' },
-    }),
+    SharedModule,
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],
